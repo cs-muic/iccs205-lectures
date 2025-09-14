@@ -1,0 +1,16 @@
+[project]
+name = "iccs-205-numerical-computation"
+version = "1.0.0"
+description = ""
+requires-python = ">=3.12"
+dependencies = [
+    "notebook (>=7.4.5,<8.0.0)"
+]
+
+[tool.poetry]
+package-mode = false
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
