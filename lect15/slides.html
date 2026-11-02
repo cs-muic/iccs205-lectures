@@ -1,0 +1,1757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>L23 — Local Search · Slides</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+<!--
+  ICCS205 L23 lecture slides, built from lect15/Local Search.ipynb.
+  Same look as notes.html (ICPY101 style). Self-contained except KaTeX (needs internet for the math).
+  Keys: → / Space / PageDown next (reveals answers first), ← back, F full screen, Home / End.
+  ⌘P prints one slide per page with every answer shown.
+-->
+<style>
+:root{
+  --ink:#12161f; --ink-2:#3d4657; --ink-3:#6b7488;
+  --rule:#c9d0dc; --rule-2:#e4e9f1;
+  --accent:#1b3a6b; --accent-2:#0f766e; --amber:#8a6d10;
+  --paper:#ffffff; --tint:#f4f6fa; --tint-2:#eef3fb;
+  --s1:#2a78d6; --s2:#eb6834; --muted:#898781;
+  --serif:"Charter","Bitstream Charter","Sitka Text",Cambria,Georgia,serif;
+  --sans:"Inter","Source Sans 3","Helvetica Neue",Arial,system-ui,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#1b2231}
+body{font-family:var(--serif);color:var(--ink);-webkit-font-smoothing:antialiased}
+
+/* ---------- slide frame: authored at 1280×720, scaled to fit ---------- */
+.slide{position:absolute;left:50%;top:50%;width:1280px;height:720px;margin:-360px 0 0 -640px;
+  transform:scale(var(--scale,1));background:var(--paper);padding:50px 72px 56px 92px;
+  display:none;overflow:hidden;font-size:24px;line-height:1.42}
+.slide.active{display:block}
+.slide::before{content:"";position:absolute;left:0;top:0;bottom:0;width:14px;background:var(--accent)}
+.foot{position:absolute;left:92px;right:72px;bottom:20px;display:flex;justify-content:space-between;
+  font:600 12.5px/1 var(--sans);letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
+.kicker{font:700 15px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin:0 0 10px}
+h2{font:700 40px/1.12 var(--sans);color:var(--accent);margin:0 0 24px}
+h3{font:700 23px/1.2 var(--sans);color:var(--ink-2);margin:0 0 10px}
+p{margin:0 0 14px}
+ul,ol{margin:0 0 14px;padding-left:30px}
+li{margin-bottom:8px}
+b{font-weight:700}
+a{color:var(--accent)}
+figure{margin:0}
+figcaption{font:500 15px/1.35 var(--sans);color:var(--ink-3);margin-top:8px}
+code{font-family:var(--mono);font-size:.82em;background:var(--tint);padding:1px 6px;border-radius:4px;white-space:nowrap}
+.small{font-size:18px;line-height:1.4}
+.muted{color:var(--ink-3)}
+.lead{font-size:26px;color:var(--ink-2)}
+
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:36px;align-items:start}
+.c64{grid-template-columns:1.45fr 1fr}
+.c46{grid-template-columns:1fr 1.3fr}
+.c73{grid-template-columns:1.85fr 1fr}
+
+/* ---------- boxes (match notes.html) ---------- */
+.lab{font:800 13px/1 var(--sans);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px}
+.note{background:var(--tint-2);border:1.5px dashed #a9bcd8;border-radius:6px;padding:12px 18px;margin:0 0 14px}
+.note .lab{color:var(--accent)}
+.q{background:#fffbe8;border:1.5px dashed #cbb35f;border-radius:6px;padding:12px 18px;margin:0 0 14px}
+.q .lab{color:var(--amber)}
+.bad{background:#fdf1ef;border:1.5px dashed #e3a99c;border-radius:6px;padding:14px 18px}
+.bad .lab{color:#9b2c2c}
+.card{background:var(--tint);border:1px solid var(--rule-2);border-radius:8px;padding:20px 24px}
+.card.hi{background:var(--tint-2);border-color:#a9bcd8}
+.eg{font:500 17px/1.4 var(--sans);color:var(--ink-3);margin:12px 0 0}
+.tag{display:inline-block;font:700 13px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;
+  padding:6px 10px;border-radius:99px;background:#fdecea;color:#9b2c2c;vertical-align:middle}
+.big{font:800 60px/1.1 var(--sans);color:var(--accent);margin:4px 0 6px;letter-spacing:-.01em}
+.big sup{font-size:.55em}
+
+/* reveal-on-keypress fragments */
+.frag{opacity:0;transition:opacity .25s}
+.frag.on{opacity:1}
+
+/* think-first grids */
+.qa{display:grid;grid-template-columns:380px 1fr;gap:14px 26px;align-items:stretch}
+.qa .qq{font:600 20px/1.35 var(--sans);color:var(--ink-2);padding:10px 0 10px 16px;border-left:4px solid #cbb35f}
+.qa .qq .qn{display:block;font:800 12.5px/1 var(--sans);letter-spacing:.12em;color:var(--amber);margin-bottom:6px}
+.qa .aa{font-size:20.5px;line-height:1.4;background:#eefaf8;border-left:4px solid var(--accent-2);padding:10px 16px;border-radius:0 6px 6px 0}
+
+/* pillars / technique cards */
+.pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-bottom:22px}
+.pillar{background:var(--tint);border-top:6px solid var(--accent);border-radius:8px;padding:18px 22px 20px}
+.pillar .sym{font-size:32px;color:var(--accent);margin-bottom:4px;min-height:44px}
+.pillar p{font-size:21px;margin-bottom:8px}
+.steps li{margin-bottom:12px}
+
+/* ---------- code ---------- */
+pre{font-family:var(--mono);background:var(--tint);border:1px solid var(--rule-2);border-radius:6px;
+  padding:14px 18px;margin:0 0 14px;font-size:16px;line-height:1.45;overflow:hidden;white-space:pre}
+pre.sm{font-size:15px}
+pre.xs{font-size:14px;line-height:1.42}
+.line{display:block;min-height:1.45em}
+.line.hl{background:#fff3c4;margin:0 -18px;padding:0 18px;box-shadow:inset 4px 0 0 #cbb35f}
+.line.del{background:#fdecea;margin:0 -18px;padding:0 18px}
+.line.ins{background:#e6f6ec;margin:0 -18px;padding:0 18px}
+.t-k{color:#1b3a6b;font-weight:700}
+.t-s{color:#0f766e}
+.t-c{color:#6b7488;font-style:italic}
+.t-n{color:#9a5b00}
+.t-b{color:#7a3e9d}
+
+/* ---------- demos ---------- */
+.btn{font:600 15.5px/1 var(--sans);padding:10px 15px;border-radius:8px;border:1.5px solid var(--accent);
+  background:var(--accent);color:#fff;cursor:pointer}
+.btn.ghost{background:#fff;color:var(--accent)}
+.btn:hover{filter:brightness(1.12)}
+.btn:focus-visible{outline:3px solid #8fa6c9;outline-offset:2px}
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.stats{display:grid;grid-template-columns:auto 1fr;gap:7px 16px;margin:0 0 14px;
+  font:500 17px/1.3 var(--sans);font-variant-numeric:tabular-nums}
+.stats dt{color:var(--ink-3)}
+.stats dd{margin:0;font-weight:700;color:var(--ink)}
+.log{font:13.5px/1.5 var(--mono);background:var(--tint);border:1px solid var(--rule-2);border-radius:6px;
+  padding:8px 12px;height:176px;overflow:hidden;color:var(--ink-2);white-space:pre}
+.legend{display:flex;flex-wrap:wrap;gap:6px 20px;font:500 15px/1.2 var(--sans);color:var(--ink-2);margin:8px 0 0}
+.legend .sw{display:inline-block;width:20px;height:4px;border-radius:2px;vertical-align:middle;margin-right:7px}
+.legend .sw.dash{background:repeating-linear-gradient(90deg,var(--ink-3) 0 5px,transparent 5px 9px)}
+.legend .sw.dot{width:12px;height:12px;border-radius:50%}
+.legend .sw.ring{width:14px;height:14px;border-radius:50%;background:none;border:2px solid var(--s2)}
+.legend .sw.thin{height:2px;opacity:.55}
+.plotwrap{position:relative}
+canvas{display:block}
+.panel{border:1px solid var(--rule-2);border-radius:8px;background:#fff}
+.tip{position:absolute;pointer-events:none;background:#12161f;color:#fff;font:500 14px/1.4 var(--sans);
+  padding:6px 10px;border-radius:6px;white-space:nowrap;display:none;z-index:5;font-variant-numeric:tabular-nums}
+.status{font:500 18px/1.4 var(--sans);color:var(--ink-2);min-height:52px}
+.readout{font:500 16px/1.5 var(--sans);color:var(--ink-2);font-variant-numeric:tabular-nums;margin:0 0 10px}
+.readout b{color:var(--ink)}
+.sgrid{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;margin:0 0 8px}
+.sgrid div{height:30px;border-radius:4px;display:flex;align-items:center;justify-content:center;
+  font:700 14px/1 var(--sans);font-variant-numeric:tabular-nums;color:var(--ink);transition:background .15s}
+.cbar{height:12px;border-radius:3px;margin-top:10px}
+.cbar-ticks{display:flex;justify-content:space-between;font:500 13px/1 var(--sans);color:var(--ink-3);margin-top:5px}
+.therm{height:10px;border-radius:5px;background:var(--rule-2);overflow:hidden;margin:4px 0 10px}
+.therm i{display:block;height:100%;width:0;background:var(--s2);border-radius:5px}
+
+table.ptab{border-collapse:collapse;font:500 18px/1.3 var(--sans);font-variant-numeric:tabular-nums;margin:0 0 10px}
+.ptab th,.ptab td{border:1px solid var(--rule);padding:9px 12px;text-align:right;white-space:nowrap}
+.ptab .katex{font-size:1em}
+.ptab th{background:var(--tint);color:var(--ink-2);font-weight:700}
+.ptab td:first-child,.ptab th:first-child{text-align:left}
+.ptab.left td,.ptab.left th{text-align:left}
+.nw{white-space:nowrap}
+.ptab.pairs td,.ptab.pairs th{text-align:center;min-width:54px}
+.ptab .z{color:var(--ink-3);font-weight:400}
+
+/* exam week: slots are times, each holding several exams */
+table.week{border-collapse:separate;border-spacing:6px;margin:-6px -6px 0;font:600 14px/1 var(--sans)}
+.week th{font:700 13px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);padding:2px 0;text-align:center}
+.week th.row{text-align:right;padding-right:4px;letter-spacing:0;text-transform:none;font-size:14.5px}
+.week td{width:112px;height:84px;vertical-align:top;padding:6px 7px;background:var(--tint);border:1px solid var(--rule-2);border-radius:6px}
+.week td.hi{background:var(--tint-2);border:2px solid var(--accent)}
+.week .sl{display:block;font:600 11.5px/1 var(--sans);color:var(--ink-3);margin-bottom:6px}
+/* score() walkthrough */
+.sc-state{display:flex;gap:10px;margin:0 0 14px}
+.sc-col{display:flex;flex-direction:column;align-items:center;gap:6px}
+.sc-lab{font:600 13px/1 var(--sans);color:var(--ink-3)}
+.sc-cell{width:64px;height:50px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+  font:700 24px/1 var(--sans);color:var(--ink);border:1px solid var(--rule);transition:background .2s}
+.sc-cell[data-s="0"]{background:#e3edfb}
+.sc-cell[data-s="1"]{background:#fde6da}
+.sc-cell[data-s="2"]{background:#ece6f6}
+.sc-cell.pi{outline:3px solid var(--accent);outline-offset:2px}
+.sc-cell.pj{outline:3px solid var(--amber);outline-offset:2px}
+.sc-cell.moved{border:2px dashed var(--ink-2)}
+.sc-ptr{font:800 16px/1 var(--sans);height:16px}
+.sc-ptr.i{color:var(--accent)}
+.sc-ptr.j{color:var(--amber)}
+.sc-body{display:flex;gap:22px;align-items:flex-start}
+.sc-h{font:700 13px/1 var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3);margin:0 0 8px}
+.sc-h code{text-transform:none;letter-spacing:0;font-size:13px}
+table.sc-mat{border-collapse:separate;border-spacing:3px;margin:-3px;font:600 15px/1 var(--sans);font-variant-numeric:tabular-nums}
+.sc-mat th{width:28px;height:32px;font:600 13px/1 var(--sans);color:var(--ink-3)}
+.sc-mat th.on{color:var(--ink);font-weight:800}
+.sc-mat td{width:36px;height:33px;text-align:center;border-radius:4px;border:1px solid var(--rule);background:#fff;color:var(--ink)}
+.sc-mat td.lo{background:var(--tint);border-color:var(--rule-2);color:#c3cad6;font-weight:400}
+.sc-mat td.miss{color:#9aa3b2;font-weight:400;text-decoration:line-through}
+.sc-mat td.hit{background:#dcf2ee;border-color:var(--accent-2);color:#0b5650;font-weight:800}
+.sc-mat td.cur{outline:3px solid var(--ink);outline-offset:1px}
+.sc-log{font:14px/1.6 var(--mono);background:var(--tint);border:1px solid var(--rule-2);border-radius:6px;
+  padding:8px 12px;height:246px;overflow:hidden;white-space:pre;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.sc-log b{color:var(--ink)}
+.week .ex{display:inline-block;min-width:27px;padding:5px 3px;margin:0 3px 4px 0;border-radius:4px;background:#fff;
+  border:1px solid var(--rule);text-align:center;font-variant-numeric:tabular-nums;color:var(--ink)}
+
+/* ---------- cover ---------- */
+.cover h1{font:800 92px/1 var(--sans);color:var(--accent);margin:96px 0 22px;letter-spacing:-.015em}
+.cover .sub{font-size:30px;line-height:1.35;color:var(--ink-2);max-width:900px}
+.cover .meta{font:600 17px/1.4 var(--sans);color:var(--ink-3);letter-spacing:.02em}
+.cover .ridge{position:absolute;left:14px;bottom:0;width:1266px;height:230px}
+.cover .keys{position:absolute;right:72px;top:50px;font:600 14px/1 var(--sans);color:var(--ink-3);letter-spacing:.04em}
+.katex{font-size:1.08em}
+
+/* ---------- chrome around the deck ---------- */
+#hud{position:fixed;left:0;right:0;bottom:0;height:4px;background:rgba(255,255,255,.1);z-index:50}
+#bar{height:100%;width:0;background:#8fa6c9;transition:width .2s}
+#nav{position:fixed;right:12px;bottom:12px;display:flex;gap:6px;z-index:51;opacity:0;transition:opacity .2s}
+#nav:hover,#nav:focus-within{opacity:1}
+#nav button{width:38px;height:34px;border:0;border-radius:7px;background:#1b2231;color:#e8ecf4;font:700 18px/1 var(--sans);cursor:pointer}
+
+@media print{
+  @page{size:1280px 720px;margin:0}
+  html,body{height:auto;overflow:visible;background:#fff}
+  .slide{position:relative;display:block!important;left:auto;top:auto;margin:0;transform:none!important;break-after:page}
+  .frag{opacity:1!important}
+  #hud,#nav,.controls{display:none}
+}
+</style>
+</head>
+<body>
+<main id="deck">
+
+<!-- 1 ───────────────────────────────────────────────────────────────── -->
+<section class="slide cover">
+  <div class="kicker">ICCS205 · Numerical Computation · Lecture 23 of 24</div>
+  <h1>Local Search</h1>
+  <p class="sub">When nobody knows how to <em>build</em> the answer, start from a bad one and keep improving it.</p>
+  <p class="meta">Module J — Randomness &nbsp;·&nbsp; hill climbing · random restarts · simulated annealing</p>
+  <svg class="ridge" viewBox="0 0 1266 230" aria-hidden="true">
+    <path class="ridge-fill" fill="#eef3fb"/>
+    <path class="ridge-line" fill="none" stroke="#1b3a6b" stroke-width="3" stroke-linejoin="round"/>
+    <circle class="ridge-ring" r="12" fill="#fff"/><circle class="ridge-dot" r="9" fill="#eb6834"/>
+  </svg>
+  <p class="keys">→ or Space: next &nbsp;·&nbsp; ←: back &nbsp;·&nbsp; F: full screen</p>
+</section>
+
+<!-- 2 ───────────────────────────────────────────────────────────────── -->
+<section class="slide" data-section="Introduction">
+  <div class="kicker">Warm-up</div>
+  <h2>How would you find the best exam timetable?</h2>
+  <p class="lead">70 courses share 15 exam slots, several exams at a time in different rooms.
+    Any student with two exams in the same slot complains.
+    Find the timetable with the fewest complaints.</p>
+  <div class="cols">
+    <div class="frag">
+      <div class="q"><div class="lab">Idea</div>Try every timetable and keep the best one.</div>
+      <div class="big">15<sup>70</sup> ≈ 2.1 × 10<sup>82</sup></div>
+      <p class="small muted">possible timetables: each course can go in any of the 15 slots</p>
+    </div>
+    <div class="frag">
+      <ul style="margin-top:6px">
+        <li>Atoms in the observable universe: about $10^{80}$.</li>
+        <li>Checking a billion timetables per second takes $2\times10^{73}$ seconds.</li>
+        <li>That is about $5\times10^{55}$ times the age of the universe.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="note frag"><div class="lab">Today</div>Algorithms that find a <b>good</b> timetable anyway, while looking at almost none of them.</div>
+</section>
+
+<!-- 3 ───────────────────────────────────────────────────────────────── -->
+<section class="slide" data-section="Introduction">
+  <div class="kicker">Two ways to solve a problem</div>
+  <h2>Constructive algorithms vs local search</h2>
+  <div class="cols" style="margin-bottom:24px">
+    <div class="card">
+      <h3>Constructive</h3>
+      <ul>
+        <li>Builds the solution from scratch, piece by piece.</li>
+        <li>When it finishes, you have <em>the</em> answer.</li>
+      </ul>
+      <p class="eg">Bisection (L03) · Newton’s method (L04) · Gaussian elimination (L12) · least squares (L13)</p>
+    </div>
+    <div class="card hi">
+      <h3>Local search</h3>
+      <ul>
+        <li>Starts with a complete solution, probably a bad one.</li>
+        <li>Improves it with many small changes.</li>
+        <li>Stops when it runs out of improvements, or of time.</li>
+      </ul>
+      <p class="eg">Timetabling · route planning · packing · code breaking</p>
+    </div>
+  </div>
+  <div class="note"><div class="lab">When to reach for it</div>The solutions are discrete, there are astronomically many of them,
+    and no formula builds the best one.</div>
+</section>
+
+<!-- 4 ───────────────────────────────────────────────────────────────── -->
+<section class="slide" data-section="Introduction">
+  <div class="kicker">Before writing any code</div>
+  <h2>The three pillars of local search</h2>
+  <div class="pillars">
+    <div class="pillar">
+      <div class="sym">$S$</div><h3>State</h3>
+      <p>A candidate solution: complete, but maybe bad.</p>
+      <p class="eg">three point indices · a list of 70 slot numbers</p>
+    </div>
+    <div class="pillar">
+      <div class="sym">$f(S)$</div><h3>Objective function</h3>
+      <p>One number that says how good $S$ is.</p>
+      <p class="eg">maximise a <b>score</b> or minimise a <b>cost</b>. Pick one and stay consistent.</p>
+    </div>
+    <div class="pillar">
+      <div class="sym">$N(S)$</div><h3>Neighbor</h3>
+      <p>A slightly modified version of $S$.</p>
+      <p class="eg">too small a change and you crawl; too big and you are guessing at random</p>
+    </div>
+  </div>
+  <div class="note"><div class="lab">Habit</div>For every new problem, name the three pillars first.
+    The code is fifteen lines; choosing the pillars is the real work.</div>
+</section>
+
+<!-- 5 ───────────────────────────────────────────────────────────────── -->
+<section class="slide" data-section="Hill climbing">
+  <div class="kicker">The greedy approach</div>
+  <h2>Hill climbing</h2>
+  <div class="cols c46">
+    <div>
+      <ol class="steps">
+        <li>Start with a random solution: the <b>current state</b>.</li>
+        <li>Look at all (or some) of its <b>neighbors</b>.</li>
+        <li>Evaluate them with the <b>objective function</b>.</li>
+        <li>If a neighbor is better, <b>move there</b>.<br>If none is better, <b>stop</b>: you are on a peak.</li>
+      </ol>
+      <p>It is <b>greedy</b>: it only ever moves uphill.</p>
+    </div>
+    <figure>
+      <canvas class="land-static panel" width="620" height="340"></canvas>
+      <figcaption>Every move went up, until no neighbor was higher. The tallest peak was never seen.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- 6 ───────────────────────────────────────────────────────────────── -->
+<section class="slide" data-section="Hill climbing">
+  <div class="kicker">The same skeleton every time</div>
+  <h2>Hill climbing in code</h2>
+  <div class="cols" style="grid-template-columns:660px 1fr">
+<pre class="py sm" data-hl="6,9">
+def optimize(initial_state, score, perturb, iterations=10000):
+    current_state = initial_state
+    current_score = score(current_state)
+
+    for i in range(iterations):
+        trying_state = perturb(current_state)  # a random neighbor
+        trying_score = score(trying_state)
+
+        if trying_score > current_score:        # better? move there
+            current_state = trying_state
+            current_score = trying_score
+
+    return current_state, current_score
+</pre>
+    <div>
+      <p>For each new problem you write two functions:</p>
+      <ul>
+        <li><code>score(state)</code>: the objective</li>
+        <li><code>perturb(state)</code>: returns a random neighbor</li>
+      </ul>
+      <p><code>optimize</code> never changes.</p>
+      <div class="note"><div class="lab">Stochastic hill climbing</div>We try <b>one random</b> neighbor per
+        iteration instead of all of them, and stop after a fixed number of tries.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 7 ───────────────────────────────────────────────────────────────── -->
+<section class="slide" data-section="Example A · biggest triangle">
+  <div class="kicker">Example A</div>
+  <h2>The biggest triangle</h2>
+  <div class="cols">
+    <div>
+      <p>We are given 500 random points. Choose <b>three</b> of them so that their triangle has the <b>largest area</b>.</p>
+<pre class="py">
+np.random.seed(13)
+n = 500
+x = np.random.randn(n)*2-1
+y = np.random.randn(n)*2-1
+plt.plot(x, y, '.r')
+</pre>
+      <p>Area from the three corners (the shoelace formula):</p>
+      <p>$$A=\tfrac12\left|\,x_1y_2+x_2y_3+x_3y_1-y_1x_2-y_2x_3-y_3x_1\,\right|$$</p>
+    </div>
+    <figure>
+      <canvas class="tri-static panel" width="510" height="450"></canvas>
+      <figcaption>500 points from the notebook’s distribution (the browser draws different random numbers from NumPy).</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- 8 ───────────────────────────────────────────────────────────────── -->
+<section class="slide" data-section="Example A · biggest triangle">
+  <div class="kicker">Example A · think before you code</div>
+  <h2>Four questions</h2>
+  <div class="qa">
+    <div class="qq"><span class="qn">Q1</span>With $n$ points, how long does brute force take?</div>
+    <div class="aa frag">Every triple: $\binom{500}{3}=20{,}708{,}500$ triangles, $O(n^3)$.
+      Fast in C, about a minute in pure Python. This time we <em>can</em> check the answer.</div>
+    <div class="qq"><span class="qn">Q2</span>What is our state?</div>
+    <div class="aa frag">Three point indices <code>(i, j, k)</code>, e.g. <code>(3, 6, 5)</code>.
+      Indices, not coordinates: the points never change.</div>
+    <div class="qq"><span class="qn">Q3</span>How do we move to a neighbor?</div>
+    <div class="aa frag">Replace one of the three indices with a random point.
+      Each state has $3\times499$ neighbors.</div>
+    <div class="qq"><span class="qn">Q4</span>How do we decide whether to keep it?</div>
+    <div class="aa frag">Keep it if the area got bigger. We are <b>maximising</b>.</div>
+  </div>
+</section>
+
+<!-- 9 ───────────────────────────────────────────────────────────────── -->
+<section class="slide" data-section="Example A · biggest triangle">
+  <div class="kicker">Example A · the two problem-specific functions</div>
+  <h2>Score and perturb</h2>
+  <div class="cols c64">
+<pre class="py sm" data-hl="9,13,14">
+def triarea(x1,y1, x2,y2, x3,y3):
+    # shoelace formula
+    return 0.5*abs(x1*y2 + x2*y3 + x3*y1 - y1*x2 - y2*x3 - y3*x1)
+
+State = Tuple[int, int, int]           # three point indices
+
+def score(state: State) -> float:
+    s1, s2, s3 = state
+    return triarea(x[s1], y[s1], x[s2], y[s2], x[s3], y[s3])
+
+def perturb(state: State) -> State:
+    idx = np.random.randint(0, 3)        # which corner moves
+    ret = [s for s in state]             # a copy, not the original
+    ret[idx] = np.random.randint(0, n)   # any of the n points
+    return tuple(ret)
+
+best_state, best_score = optimize((3, 6, 5), score, perturb,
+                                  iterations=100000)
+</pre>
+    <div>
+      <ul>
+        <li><code>score</code>: the triangle’s area. Bigger is better.</li>
+        <li><code>perturb</code>: move one corner to a random point.</li>
+        <li><code>optimize</code>: unchanged from the last slide.</li>
+      </ul>
+      <div class="note"><div class="lab">Why a tuple?</div>A tuple cannot be changed in place, so <code>perturb</code>
+        can never damage the current state by accident.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 10 ──────────────────────────────────────────────────────────────── -->
+<section class="slide" id="s-tri" data-section="Example A · biggest triangle">
+  <div class="kicker">Live demo</div>
+  <h2>Hill climbing the triangle</h2>
+  <div class="cols" style="grid-template-columns:600px 1fr;gap:30px">
+    <div>
+      <canvas class="tri panel" width="600" height="452"></canvas>
+      <div class="legend">
+        <span><i class="sw" style="background:var(--s1)"></i>current state</span>
+        <span><i class="sw dash"></i>neighbor just tried</span>
+        <span><i class="sw" style="background:var(--s2)"></i>true optimum (brute force)</span>
+      </div>
+    </div>
+    <div>
+      <div class="controls">
+        <button class="btn" data-act="run">Run 100,000 iterations</button>
+        <button class="btn ghost" data-act="step">Step once</button>
+        <button class="btn ghost" data-act="reset">Reset to (3, 6, 5)</button>
+        <button class="btn ghost" data-act="brute">Check by brute force</button>
+      </div>
+      <dl class="stats">
+        <dt>Iteration</dt><dd data-k="it">0</dd>
+        <dt>State</dt><dd data-k="state">(3, 6, 5)</dd>
+        <dt>Area</dt><dd data-k="area">–</dd>
+        <dt>Improvements</dt><dd data-k="imp">0</dd>
+        <dt>True optimum</dt><dd data-k="opt">not checked yet</dd>
+      </dl>
+      <div class="log"></div>
+      <p class="small muted" style="margin-top:10px">The notebook’s run: 15 improvements, the last one at iteration 1,815.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 11 ──────────────────────────────────────────────────────────────── -->
+<section class="slide" data-section="Example B · exam scheduling">
+  <div class="kicker">Example B</div>
+  <h2>Scheduling exams</h2>
+  <p class="lead">Put 70 exams into 15 time slots so that as few students as possible have two exams at once.</p>
+  <div class="cols" style="grid-template-columns:640px 1fr;gap:40px">
+    <figure>
+      <table class="week"></table>
+      <figcaption>One possible timetable: 5 days × 3 sessions = 15 slots, with 4 or 5 of the 70 exams in each.</figcaption>
+    </figure>
+    <div>
+      <div class="note"><div class="lab">A slot is a time, not a room</div>Monday 9:00 (slot 0) runs
+        five exams at once, each in its own room.</div>
+      <ul class="small">
+        <li>Sharing a slot is fine, unless a student takes two of those exams.
+          Nobody can sit two exams at once.</li>
+        <li>70 slots would mean no clashes, but 70 sessions of exams.</li>
+        <li>With 15, exams must share. The question is <b>which</b> ones.</li>
+        <li>We assume there are enough rooms: only clashes count.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 12 ──────────────────────────────────────────────────────────────── -->
+<section class="slide" data-section="Example B · exam scheduling">
+  <div class="kicker">Example B · the clash table</div>
+  <h2>Counting clashes</h2>
+  <div class="cols" style="grid-template-columns:440px 1fr;gap:48px">
+    <div>
+      <p class="small" style="margin-bottom:8px">Three students, four classes:</p>
+      <table class="ptab left">
+        <tr><th>Student</th><th>Takes</th></tr>
+        <tr><td>Ann</td><td>A, B, C</td></tr>
+        <tr><td>Ben</td><td>A, B</td></tr>
+        <tr><td>Cat</td><td>C, D</td></tr>
+      </table>
+      <p class="small" style="margin:16px 0 8px"><code>student[i][j]</code>: how many take <b>both</b> $i$ and $j$</p>
+      <table class="ptab pairs">
+        <tr><th></th><th>A</th><th>B</th><th>C</th><th>D</th></tr>
+        <tr><th>A</th><td class="z">0</td><td>2</td><td>1</td><td class="z">0</td></tr>
+        <tr><th>B</th><td>2</td><td class="z">0</td><td>1</td><td class="z">0</td></tr>
+        <tr><th>C</th><td>1</td><td>1</td><td class="z">0</td><td>1</td></tr>
+        <tr><th>D</th><td class="z">0</td><td class="z">0</td><td>1</td><td class="z">0</td></tr>
+      </table>
+    </div>
+    <div>
+      <div class="note"><div class="lab">Not a limit on classes</div>Ann takes three classes and appears
+        in three cells: <span class="nw">A–B</span>, <span class="nw">A–C</span> and <span class="nw">B–C</span>. The table stores <b>pairs</b> because a clash always
+        involves two exams.</div>
+      <div class="q"><div class="lab">Try it</div>
+        <p style="margin:0 0 4px">A and B share a slot. How many clashes?</p>
+        <p class="frag" style="margin:0 0 14px;color:var(--accent-2)"><b>2</b>: Ann and Ben.</p>
+        <p style="margin:0 0 4px">A, B and C share a slot?</p>
+        <p class="frag" style="margin:0;color:var(--accent-2)">2 + 1 + 1 = <b>4</b>. Ann has three exams
+          at once and counts once for each pair.</p>
+      </div>
+      <p class="small frag">The cost of a timetable is this sum over every pair of exams that share a slot.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 13 ──────────────────────────────────────────────────────────────── -->
+<section class="slide" id="s-sched" data-section="Example B · exam scheduling">
+  <div class="kicker">Example B · the data</div>
+  <h2>The notebook’s data</h2>
+  <div class="cols" style="grid-template-columns:1fr 440px">
+    <div>
+      <p>The notebook makes the table up: a random count for every pair of the 70 classes.
+        Real data would be counted from enrolment lists.</p>
+<pre class="py sm">
+nclass = 70
+np.random.seed(222)
+student = np.random.randint(0, 100, (nclass, nclass))
+
+for i in range(nclass-1):
+    for j in range(i+1, nclass):
+        student[i, j] = student[j, i]   # symmetric
+for i in range(nclass):
+    student[i, i] = 0                   # no clash with itself
+student[student > 70] = 0               # many pairs share nobody
+</pre>
+      <p class="small">About 70% of pairs share students, so expect some clashes: we want the fewest.</p>
+    </div>
+    <div>
+      <div class="plotwrap">
+        <canvas class="heat" width="420" height="420"></canvas>
+        <div class="tip"></div>
+      </div>
+      <div class="cbar"></div>
+      <div class="cbar-ticks"><span>0 students</span><span>35</span><span>70</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 14 ──────────────────────────────────────────────────────────────── -->
+<section class="slide" data-section="Example B · exam scheduling">
+  <div class="kicker">Example B · think before you code</div>
+  <h2>Four questions</h2>
+  <div class="qa">
+    <div class="qq"><span class="qn">Q1</span>With $n$ classes and $k$ slots, how long does brute force take?</div>
+    <div class="aa frag">Each class picks one of $k$ slots: $k^n$ timetables.
+      $15^{70}\approx2\times10^{82}$. Not slow: <b>impossible</b>.</div>
+    <div class="qq"><span class="qn">Q2</span>What is our state?</div>
+    <div class="aa frag">A list of 70 slot numbers: <code>state[i]</code> is the slot of class $i$.
+      Start with <code>[1] * 70</code>.<br>In <code>[3, 0, 14, 3, …]</code>, classes 0 and 3 share slot 3.</div>
+    <div class="qq"><span class="qn">Q3</span>How do we move to a neighbor?</div>
+    <div class="aa frag">Pick one class and move it to a random slot.
+      Every list is a legal timetable, so nothing can break.</div>
+    <div class="qq"><span class="qn">Q4</span>What is our cost function?</div>
+    <div class="aa frag">Total complaints, which we <b>minimise</b>:<br>
+      $\displaystyle f(S)=\sum_{i&lt;j}[\,S_i=S_j\,]\cdot\text{student}[i][j]$</div>
+  </div>
+</section>
+
+<!-- 15 ──────────────────────────────────────────────────────────────── -->
+<section class="slide" data-section="Example B · exam scheduling">
+  <div class="kicker">Example B · the code</div>
+  <h2>Perturb and score</h2>
+  <div class="cols" style="grid-template-columns:1fr 410px;gap:30px">
+<pre class="py sm" data-hl="6">
+n_time_slot = 15
+n_class = 70
+initial_state = [1] * n_class         # everyone in slot 1
+
+def perturb(state):
+    ret = state.copy()                 # never edit the input
+    idx = np.random.randint(n_class)   # pick a class
+    ret[idx] = np.random.randint(n_time_slot)  # new slot
+    return ret
+
+def score(state):                      # lower is better
+    complaints = 0
+    for i_class, timeslot in enumerate(state):
+        for j_class in range(i_class + 1, n_class):
+            if state[j_class] == state[i_class]:  # same slot
+                complaints += student[i_class, j_class]
+    return complaints
+</pre>
+    <div>
+      <p class="small" style="margin-bottom:6px">The only change to <code>optimize</code>:</p>
+<pre class="py sm diff">
+-   if trying_score > current_score:
++   if trying_score &lt; current_score:
+</pre>
+      <ul class="small">
+        <li>Start: all 70 classes in slot 1, so all $\binom{70}{2}=2415$ pairs clash, about 60,000 complaints.</li>
+        <li><code>score</code> visits 2,415 pairs and runs 50,000 times: tens of seconds in Python.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 16 ──────────────────────────────────────────────────────────────── -->
+<section class="slide" id="s-score" data-section="Example B · exam scheduling">
+  <div class="kicker">Live demo · inside score()</div>
+  <h2>Adding up complaints, one pair at a time</h2>
+  <div class="cols" style="grid-template-columns:520px 1fr;gap:40px">
+    <div>
+<pre class="py xs">
+def score(state):
+    complaints = 0
+    for i_class, timeslot in enumerate(state):
+        for j_class in range(i_class + 1, n_class):
+            if state[j_class] == state[i_class]:
+                complaints += student[i_class, j_class]
+    return complaints
+</pre>
+      <dl class="stats">
+        <dt><code>i_class</code></dt><dd data-v="i">–</dd>
+        <dt><code>j_class</code></dt><dd data-v="j">–</dd>
+        <dt><code>state[i_class]</code></dt><dd data-v="si">–</dd>
+        <dt><code>state[j_class]</code></dt><dd data-v="sj">–</dd>
+        <dt>Same slot?</dt><dd data-v="same">–</dd>
+        <dt><code>complaints</code></dt><dd data-v="sum">0</dd>
+      </dl>
+      <div class="controls">
+        <button class="btn" data-act="step">Step</button>
+        <button class="btn ghost" data-act="play">Play</button>
+        <button class="btn ghost" data-act="try">Try a neighbor</button>
+        <button class="btn ghost" data-act="reset">Reset</button>
+      </div>
+      <div class="readout"></div>
+    </div>
+    <div>
+      <div class="sc-state"></div>
+      <div class="sc-body">
+        <div>
+          <div class="sc-h"><code>student[i][j]</code></div>
+          <table class="sc-mat"></table>
+        </div>
+        <div style="flex:1">
+          <div class="sc-h">Running total</div>
+          <div class="sc-log"></div>
+        </div>
+      </div>
+      <p class="small muted" style="margin-top:12px">6 classes, 3 slots: 15 pairs. Struck out: checked, different slots.
+        Shaded: never visited, because <code>j_class</code> starts at <code>i_class + 1</code>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 17 ──────────────────────────────────────────────────────────────── -->
+<section class="slide" id="s-sched-hc" data-section="Example B · exam scheduling">
+  <div class="kicker">Live demo</div>
+  <h2>Hill climbing the timetable</h2>
+  <div class="cols" style="grid-template-columns:640px 1fr;gap:30px">
+    <div>
+      <div class="legend" style="margin:0 0 8px"><span><i class="sw" style="background:var(--s1)"></i>hill climbing: complaints</span></div>
+      <div class="plotwrap"><canvas class="cost" width="640" height="400"></canvas><div class="tip"></div></div>
+    </div>
+    <div>
+      <div class="controls">
+        <button class="btn" data-act="hc">Hill climb 50,000 iterations</button>
+        <button class="btn ghost" data-act="reset">Reset</button>
+      </div>
+      <div class="readout" data-k="hc">Hill climbing: not started</div>
+      <div class="sgrid"></div>
+      <p class="small muted" style="margin-bottom:8px">The state: one cell per class, showing its slot.
+        Darker means more students clash with that class.</p>
+      <p class="small" style="margin:0">Notebook: 61,476 → 437, then stuck at 437 for the last 40,000 iterations.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 18 ──────────────────────────────────────────────────────────────── -->
+<section class="slide" data-section="Example B · exam scheduling">
+  <div class="kicker">Two bugs worth knowing</div>
+  <h2>Pitfalls</h2>
+  <div class="cols">
+    <div class="bad">
+      <div class="lab">1 · Editing the state in place</div>
+<pre class="py sm">
+def perturb(state):
+    ret = state       # not a copy: the same list
+    ret[idx] = ts     # current_state changes too!
+    return ret
+</pre>
+      <p class="small">A rejected move still changes <code>current_state</code>. The state drifts away
+        while <code>current_score</code> describes a state you no longer have.
+        Lists need <code>.copy()</code>. Tuples are safe.</p>
+    </div>
+    <div class="bad">
+      <div class="lab">2 · Seeding too late</div>
+<pre class="py sm">
+student = np.random.randint(0, 100, (70, 70))
+np.random.seed(222)   # too late: already drawn
+</pre>
+      <p class="small">This is in the original notebook. The seed does nothing to the matrix,
+        so everyone solves a different problem and gets a different answer.
+        <b>Seed first</b>, then draw.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 19 ──────────────────────────────────────────────────────────────── -->
+<section class="slide" id="s-land-hc" data-section="Limitations">
+  <div class="kicker">Limitations of hill climbing</div>
+  <h2>Why hill climbing gets stuck</h2>
+  <canvas class="land panel" width="1116" height="290"></canvas>
+  <div class="cols" style="grid-template-columns:1fr 1fr;gap:30px;margin-top:16px">
+    <div>
+      <div class="controls" style="margin-bottom:8px">
+        <button class="btn" data-act="random">Drop a climber at random</button>
+      </div>
+      <p class="small muted" style="margin-bottom:6px">or click anywhere on the landscape. A neighbor is any point within ±25 steps.</p>
+      <div class="status"></div>
+    </div>
+    <div class="small">
+      <p><b>Local optimum</b>: the top of a small hill. Every step goes down, so you stop,
+        even though a taller mountain is one valley away.</p>
+      <p style="margin:0"><b>Plateau</b>: every neighbor has the same score. Nothing is “better”,
+        so the climber never moves.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 20 ──────────────────────────────────────────────────────────────── -->
+<section class="slide" id="s-land-rr" data-section="Limitations">
+  <div class="kicker">The cheapest fix</div>
+  <h2>Random restarts</h2>
+  <canvas class="land panel" width="1116" height="290"></canvas>
+  <div class="cols" style="grid-template-columns:1fr 1fr;gap:30px;margin-top:16px">
+    <div>
+      <div class="controls" style="margin-bottom:8px">
+        <button class="btn" data-act="restarts">Drop 20 climbers</button>
+      </div>
+      <div class="status"></div>
+    </div>
+    <div class="small">
+      <p>Run hill climbing many times from different random starts and keep the best result.</p>
+      <p style="margin:0">On this landscape one climb reaches the top about 1 time in 4. The best of 20 almost
+        always does: $1-0.75^{20}\approx99.7\%$. It costs 20× the time, and it is <b>still not a guarantee</b>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 21 ──────────────────────────────────────────────────────────────── -->
+<section class="slide" data-section="Beyond hill climbing">
+  <div class="kicker">Other techniques</div>
+  <h2>Getting past local optima</h2>
+  <div class="pillars">
+    <div class="pillar">
+      <h3>Simulated annealing</h3>
+      <p><b>Concept.</b> Sometimes you have to go downhill to cross a valley to a higher mountain.</p>
+      <p class="eg">Hot (early): accept worse moves freely and explore. Cold (late): accept only better moves and refine.</p>
+    </div>
+    <div class="pillar">
+      <h3>Tabu search</h3>
+      <p><b>Concept.</b> Don’t walk in circles.</p>
+      <p class="eg">Keep a “tabu list” of your last $N$ moves. You may not undo them or revisit a state you just left.</p>
+    </div>
+    <div class="pillar">
+      <h3>Genetic algorithms</h3>
+      <p><b>Concept.</b> Evolution: survival of the fittest.</p>
+      <p class="eg">Keep a population (say 50 solutions). Select the best, cross parents over into a child, mutate the child at random.</p>
+    </div>
+  </div>
+  <p class="small">Watch: <a href="https://www.youtube.com/watch?v=rYjxtmt8g9A" target="_blank" rel="noopener">local search on the travelling-salesman problem</a>
+    (visit every city while keeping the total distance short).</p>
+</section>
+
+<!-- 22 ──────────────────────────────────────────────────────────────── -->
+<section class="slide" data-section="Beyond hill climbing">
+  <div class="kicker">Simulated annealing <span class="tag" style="margin-left:10px">not in the final exam</span></div>
+  <h2>Sometimes accept a worse move</h2>
+  <div class="cols" style="grid-template-columns:1fr 520px;gap:30px">
+    <div>
+      <p>For a cost we minimise, a move that is worse by $\Delta>0$ is accepted with probability</p>
+      <p>$$P(\text{accept})=e^{-\Delta/T}$$</p>
+      <ul>
+        <li><b>Hot</b> (large $T$): almost every move is accepted. Explore the map.</li>
+        <li><b>Cold</b> ($T\to0$): only better moves. Plain hill climbing. Refine.</li>
+      </ul>
+      <p class="small">Cool a little every iteration: $T_k=T_\text{start}\,\alpha^k$ with
+        $\alpha=(T_\text{end}/T_\text{start})^{1/(N-1)}$. The notebook uses $T_\text{start}=50$,
+        $T_\text{end}=0.01$ and $N=50{,}000$, so $\alpha\approx0.99983$.</p>
+    </div>
+    <div>
+      <p class="small" style="margin-bottom:8px">Chance of accepting a move that adds $\Delta$ complaints:</p>
+      <table class="ptab">
+        <tr><th></th><th>$T=50$</th><th>$T=10$</th><th>$T=1$</th><th>$T=0.01$</th></tr>
+        <tr><td>$\Delta=10$</td><td>0.82</td><td>0.37</td><td>0.00005</td><td>≈ 0</td></tr>
+        <tr><td>$\Delta=100$</td><td>0.14</td><td>0.00005</td><td>≈ 0</td><td>≈ 0</td></tr>
+      </table>
+      <p class="small muted">The name comes from metallurgy: metal cooled slowly settles into a stronger, low-energy crystal.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 23 ──────────────────────────────────────────────────────────────── -->
+<section class="slide" data-section="Beyond hill climbing">
+  <div class="kicker">Simulated annealing · the code (trimmed from the notebook)</div>
+  <h2>Hill climbing with a different <code style="font-size:.8em">if</code></h2>
+  <div class="cols" style="grid-template-columns:1fr 330px;gap:28px">
+<pre class="py xs" data-hl="14,15,20">
+def simulated_annealing(initial_state, score_fn, perturb_fn,
+                        n_iterations=50000, T_start=50.0, T_end=0.01):
+    current_state = initial_state.copy()
+    current_score = score_fn(current_state)
+    best_state, best_score = current_state.copy(), current_score
+    alpha = (T_end / T_start) ** (1.0 / max(1, n_iterations - 1))
+    T = T_start
+
+    for i in range(n_iterations):
+        candidate_state = perturb_fn(current_state)
+        candidate_score = score_fn(candidate_state)
+        delta = candidate_score - current_score     # > 0 means worse
+
+        if delta &lt;= 0 or np.random.rand() &lt; np.exp(-delta / T):
+            current_state, current_score = candidate_state, candidate_score
+
+        if current_score &lt; best_score:               # remember the best
+            best_state, best_score = current_state.copy(), current_score
+
+        T *= alpha                                  # cool down
+
+    return best_state, best_score
+</pre>
+    <div class="small">
+      <p>Same <code>perturb</code> and <code>score</code> as before.</p>
+      <p>It keeps <code>best_state</code> because the current state is allowed to wander away from the best one.</p>
+      <div class="note"><div class="lab">In the notebook</div>Hill climbing stopped at <b>437</b> complaints.
+        Annealing found <b>244</b>.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 24 ──────────────────────────────────────────────────────────────── -->
+<section class="slide" id="s-land-sa" data-section="Beyond hill climbing">
+  <div class="kicker">Live demo</div>
+  <h2>Annealing on the landscape</h2>
+  <canvas class="land panel" width="1116" height="290"></canvas>
+  <div class="cols" style="grid-template-columns:1fr 1fr;gap:30px;margin-top:16px">
+    <div>
+      <div class="controls" style="margin-bottom:8px">
+        <button class="btn" data-act="sa">Anneal</button>
+        <button class="btn ghost" data-act="hc">Hill climb</button>
+        <button class="btn ghost" data-act="both">Both, same start</button>
+        <button class="btn ghost" data-act="random">New random start</button>
+      </div>
+      <div class="legend" style="margin:0 0 6px">
+        <span><i class="sw dot" style="background:var(--s2)"></i>annealing</span>
+        <span><i class="sw ring"></i>best seen so far</span>
+        <span><i class="sw dot" style="background:var(--s1)"></i>hill climbing</span>
+      </div>
+      <p class="small muted" style="margin:0">Click the landscape to choose the start.</p>
+    </div>
+    <div>
+      <div class="readout" data-k="sa">Temperature: not started</div>
+      <div class="therm"><i></i></div>
+      <div class="status"></div>
+      <p class="small muted" style="margin:0">Over 5,000 random starts, one hill climb reaches the top 25% of the time; annealing’s best state reaches it 84% of the time.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 25 ──────────────────────────────────────────────────────────────── -->
+<section class="slide" id="s-sched-sa" data-section="Beyond hill climbing">
+  <div class="kicker">Live demo</div>
+  <h2>Hill climbing vs annealing on the timetable</h2>
+  <div class="cols" style="grid-template-columns:720px 1fr;gap:30px">
+    <div>
+      <div class="legend" style="margin:0 0 8px">
+        <span><i class="sw" style="background:var(--s1)"></i>hill climbing</span>
+        <span><i class="sw thin" style="background:var(--s2)"></i>annealing: current</span>
+        <span><i class="sw" style="background:var(--s2)"></i>annealing: best so far</span>
+      </div>
+      <div class="plotwrap"><canvas class="cost" width="720" height="420"></canvas><div class="tip"></div></div>
+    </div>
+    <div>
+      <div class="controls">
+        <button class="btn" data-act="hc">Hill climb</button>
+        <button class="btn" data-act="sa">Anneal</button>
+        <button class="btn ghost" data-act="reset">Reset</button>
+      </div>
+      <div class="readout" data-k="hc">Hill climbing: not started</div>
+      <div class="readout" data-k="sa">Annealing: not started</div>
+      <p class="small">Annealing gets <em>worse</em> at first. While it is hot it accepts bad moves freely.
+        As it cools, the noise dies down and it settles lower than hill climbing.</p>
+      <p class="small muted" style="margin:0">Same matrix, 50,000 iterations each, $T$ from 50 down to 0.01.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 26 ──────────────────────────────────────────────────────────────── -->
+<section class="slide" data-section="Wrap-up">
+  <div class="kicker">Summary</div>
+  <h2>What to take away</h2>
+  <ul>
+    <li><b>Local search</b> starts from a complete solution and improves it with small changes.</li>
+    <li>Name the <b>three pillars</b> first: state, objective function, neighbor.</li>
+    <li><b>Hill climbing</b>: <code>perturb</code> → <code>score</code> → keep it if it is better.
+      <code>&gt;</code> maximises, <code>&lt;</code> minimises; nothing else changes.</li>
+    <li>Brute force: $O(n^3)$ for the triangle (survivable), $k^n$ for scheduling (hopeless).</li>
+    <li>Hill climbing gets stuck on <b>local optima</b> and <b>plateaus</b>. Fixes: random restarts,
+      simulated annealing, tabu search, genetic algorithms.</li>
+    <li>None of these <b>guarantee</b> the global optimum. You get a good answer, not a proof.</li>
+  </ul>
+</section>
+
+<!-- 27 ──────────────────────────────────────────────────────────────── -->
+<section class="slide" data-section="Wrap-up">
+  <div class="kicker">In the notebook</div>
+  <h2>Exercises</h2>
+  <ol>
+    <li>How many triangles can 500 points make? Time a brute-force search in Python. Was hill climbing’s answer the true optimum?</li>
+    <li>Write <code>score</code>, <code>perturb</code> and <code>optimize</code> for the triangle and find the three points.
+      Does every run find the same triangle?</li>
+    <li>Scheduling: run the hill climber 5 times from <em>random</em> timetables and keep the best.
+      How far apart are the five results? What does that spread tell you?</li>
+    <li>The triangle code accepts with <code>&gt;</code>, the scheduling code with <code>&lt;</code>. Why is it still the same algorithm?</li>
+    <li><span class="tag" style="margin-right:8px">optional</span>Use <code>simulated_annealing</code> on the triangle.
+      What starting temperature makes sense? (Hint: how big is a typical $\Delta$?)</li>
+  </ol>
+</section>
+
+</main>
+<div id="hud"><div id="bar"></div></div>
+<div id="nav"><button id="prev" aria-label="Previous slide">‹</button><button id="next" aria-label="Next slide">›</button></div>
+
+<script>
+(() => {
+'use strict';
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const fmt = v => Math.round(v).toLocaleString('en-US');
+const C = { s1: '#2a78d6', s2: '#eb6834', ink: '#12161f', ink2: '#3d4657', ink3: '#6b7488',
+            muted: '#898781', grid: '#e4e9f1', axis: '#c9d0dc', land: '#eef3fb' };
+const FONT = '"Inter","Helvetica Neue",Arial,system-ui,sans-serif';
+// sequential blue ramp, lightest = "nothing"
+const RAMP = ['#f4f6fa','#e3edfb','#cde2fb','#b7d3f6','#9ec5f4','#86b6ef','#6da7ec','#5598e7',
+              '#3987e5','#2a78d6','#256abf','#1c5cab','#184f95','#104281','#0d366b'];
+const rampIdx = t => Math.max(0, Math.min(RAMP.length - 1, Math.round(t * (RAMP.length - 1))));
+
+// ---------------------------------------------------------------- code highlighting
+const TOK = /(#[^\n]*)|(f?"[^"\n]*"|f?'[^'\n]*')|\b(def|return|for|in|if|else|elif|import|from|as|and|or|not|while|True|False|None|lambda|is)\b|\b(\d+(?:\.\d+)?(?:e-?\d+)?)\b|\b(np|plt|range|print|len|tuple|enumerate|abs|max|min|Tuple|int|float)\b/g;
+const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+$$('pre.py').forEach(pre => {
+  const src = pre.textContent.replace(/^\n+/, '').replace(/\s+$/, '');
+  const hl = new Set((pre.dataset.hl || '').split(',').filter(Boolean).map(Number));
+  const diff = pre.classList.contains('diff');
+  let out = '', last = 0, m;
+  TOK.lastIndex = 0;
+  while ((m = TOK.exec(src))) {
+    out += esc(src.slice(last, m.index));
+    const cls = m[1] ? 'c' : m[2] ? 's' : m[3] ? 'k' : m[4] ? 'n' : 'b';
+    out += `<span class="t-${cls}">${esc(m[0])}</span>`;
+    last = TOK.lastIndex;
+  }
+  out += esc(src.slice(last));
+  pre.innerHTML = out.split('\n').map((l, i) => {
+    const cls = ['line'];
+    if (hl.has(i + 1)) cls.push('hl');
+    if (diff && l.startsWith('-')) cls.push('del');
+    if (diff && l.startsWith('+')) cls.push('ins');
+    return `<span class="${cls.join(' ')}">${l || ' '}</span>`;
+  }).join('');
+});
+
+// ---------------------------------------------------------------- deck
+const slides = $$('.slide');
+const total = slides.length;
+const bar = $('#bar');
+let cur = 0, step = 0;
+slides.forEach((s, i) => {
+  if (s.classList.contains('cover')) return;
+  const f = document.createElement('div');
+  f.className = 'foot';
+  f.innerHTML = `<span>ICCS205 · L23 Local Search${s.dataset.section ? ' · ' + s.dataset.section : ''}</span><span>${i + 1} / ${total}</span>`;
+  s.appendChild(f);
+});
+const frags = s => $$('.frag', s);
+function fit() {
+  document.documentElement.style.setProperty('--scale', Math.min(innerWidth / 1280, innerHeight / 720));
+}
+function go(i, st) {
+  i = Math.max(0, Math.min(total - 1, i));
+  slides[cur].classList.remove('active');
+  cur = i;
+  slides[cur].classList.add('active');
+  const fr = frags(slides[cur]);
+  step = st === 'all' ? fr.length : 0;
+  fr.forEach((f, k) => f.classList.toggle('on', k < step));
+  bar.style.width = `${(cur + 1) / total * 100}%`;
+  if (location.hash !== '#' + (cur + 1)) history.replaceState(null, '', '#' + (cur + 1));
+}
+function next() {
+  const fr = frags(slides[cur]);
+  if (step < fr.length) fr[step++].classList.add('on');
+  else if (cur < total - 1) go(cur + 1, 0);
+}
+function prev() {
+  const fr = frags(slides[cur]);
+  if (step > 0) fr[--step].classList.remove('on');
+  else if (cur > 0) go(cur - 1, 'all');
+}
+document.addEventListener('keydown', e => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const onButton = e.target.closest && e.target.closest('button');
+  const k = e.key;
+  if (k === 'ArrowRight' || k === 'PageDown' || (k === ' ' && !onButton)) { e.preventDefault(); next(); }
+  else if (k === 'ArrowLeft' || k === 'PageUp') { e.preventDefault(); prev(); }
+  else if (k === 'Home') go(0, 0);
+  else if (k === 'End') go(total - 1, 'all');
+  else if (k === 'f' || k === 'F') {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else document.documentElement.requestFullscreen && document.documentElement.requestFullscreen();
+  }
+});
+$('#next').addEventListener('click', next);
+$('#prev').addEventListener('click', prev);
+let tx = null;
+document.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
+document.addEventListener('touchend', e => {
+  if (tx === null) return;
+  const dx = e.changedTouches[0].clientX - tx; tx = null;
+  if (Math.abs(dx) > 60) (dx < 0 ? next : prev)();
+});
+addEventListener('resize', fit);
+addEventListener('hashchange', () => {
+  const n = parseInt(location.hash.slice(1), 10);
+  if (n && n - 1 !== cur) go(n - 1, 0);
+});
+fit();
+go((parseInt(location.hash.slice(1), 10) || 1) - 1, 0);
+
+// ---------------------------------------------------------------- helpers
+function setup(cv) {
+  const w = +cv.getAttribute('width'), h = +cv.getAttribute('height'), r = 2;
+  cv.width = w * r; cv.height = h * r;
+  cv.style.width = w + 'px'; cv.style.height = h + 'px';
+  const ctx = cv.getContext('2d');
+  ctx.setTransform(r, 0, 0, r, 0, 0);
+  return { ctx, w, h };
+}
+// pointer position in the canvas's own (unscaled) pixels
+function pointer(cv, e, w, h) {
+  const r = cv.getBoundingClientRect();
+  return { x: (e.clientX - r.left) * w / r.width, y: (e.clientY - r.top) * h / r.height };
+}
+function dot(ctx, x, y, r, col) {
+  ctx.beginPath(); ctx.arc(x, y, r + 2.5, 0, 2 * Math.PI); ctx.fillStyle = '#fff'; ctx.fill();
+  ctx.beginPath(); ctx.arc(x, y, r, 0, 2 * Math.PI); ctx.fillStyle = col; ctx.fill();
+}
+function mulberry32(a) {
+  return () => {
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+function gauss(rnd) {
+  let u = 0;
+  while (u === 0) u = rnd();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * rnd());
+}
+
+// ---------------------------------------------------------------- 1-D landscape (maximise)
+const LAND = (() => {
+  const G = 400, STEP = 25, SHELF = 0.33;
+  const bump = (x, c, w, h) => Math.abs(x - c) < w ? h * (1 - ((x - c) / w) ** 2) ** 2 : 0;
+  const ss = t => t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t);
+  const f = x => Math.max(
+    0.10 + 0.04 * Math.sin(3 * Math.PI * x) + bump(x, 0.12, 0.09, 0.42) + bump(x, 0.54, 0.08, 0.55)
+      + bump(x, 0.79, 0.10, 0.82) + bump(x, 0.95, 0.045, 0.36),
+    SHELF * ss((x - 0.24) / 0.03) * (1 - ss((x - 0.38) / 0.03)));   // flat shelf = plateau
+  const F = Float64Array.from({ length: G }, (_, i) => f(i / (G - 1)));
+  let top = 0;
+  for (let i = 1; i < G; i++) if (F[i] > F[top]) top = i;
+  const peaks = [];
+  for (let i = 1; i < G - 1; i++)
+    if (F[i] > F[i - 1] && F[i] >= F[i + 1] && F[i] !== SHELF && i !== top) peaks.push(i);
+  let p0 = -1, p1 = -1;
+  for (let i = 0; i < G; i++) if (F[i] === SHELF) { if (p0 < 0) p0 = i; p1 = i; }
+  const neighbor = (x, rnd) => {
+    let d;
+    do d = Math.floor(rnd() * (2 * STEP + 1)) - STEP; while (d === 0);
+    return Math.min(G - 1, Math.max(0, x + d));
+  };
+  const canImprove = x => {
+    for (let d = -STEP; d <= STEP; d++) {
+      const y = x + d;
+      if (d && y >= 0 && y < G && F[y] > F[x]) return true;
+    }
+    return false;
+  };
+  const kind = x => F[x] === F[top] ? 'global' : F[x] === SHELF ? 'plateau' : 'local';
+  return { G, STEP, F, top, peaks, plateau: [p0, p1], neighbor, canImprove, kind };
+})();
+
+function drawLand(ctx, w, h, labels = true) {
+  const { G, F } = LAND;
+  const L = 24, R = w - 24, T = labels ? 36 : 16, B = h - 30;
+  const X = i => L + i / (G - 1) * (R - L), Y = v => B - v * (B - T);
+  ctx.clearRect(0, 0, w, h);
+  ctx.beginPath(); ctx.moveTo(X(0), B);
+  for (let i = 0; i < G; i++) ctx.lineTo(X(i), Y(F[i]));
+  ctx.lineTo(X(G - 1), B); ctx.closePath();
+  ctx.fillStyle = C.land; ctx.fill();
+  ctx.beginPath();
+  for (let i = 0; i < G; i++) i ? ctx.lineTo(X(i), Y(F[i])) : ctx.moveTo(X(i), Y(F[i]));
+  ctx.strokeStyle = C.ink2; ctx.lineWidth = 2.5; ctx.lineJoin = 'round'; ctx.stroke();
+  ctx.strokeStyle = C.axis; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(L, B + 0.5); ctx.lineTo(R, B + 0.5); ctx.stroke();
+  ctx.font = `500 13px ${FONT}`; ctx.fillStyle = C.ink3; ctx.textBaseline = 'top';
+  ctx.textAlign = 'right'; ctx.fillText('state  →', R, B + 8);
+  ctx.textAlign = 'left'; ctx.fillText('score f(state), higher is better', L, B + 8);
+  if (labels) {
+    ctx.font = `600 14px ${FONT}`; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+    const lab = (i, t, col) => { ctx.fillStyle = col; ctx.fillText(t, X(i), Y(F[i]) - 12); };
+    lab(LAND.top, 'global maximum', C.ink);
+    LAND.peaks.forEach(i => lab(i, 'local maximum', C.ink2));
+    lab(Math.round((LAND.plateau[0] + LAND.plateau[1]) / 2), 'plateau', C.ink2);
+  }
+  return { X, Y, L, R };
+}
+
+// cover ridge
+(() => {
+  const svg = $('.cover .ridge'), W = 1266, H = 230, { G, F } = LAND;
+  const X = i => i / (G - 1) * W, Y = v => H - 18 - v * (H - 46);
+  let d = '';
+  for (let i = 0; i < G; i++) d += (i ? 'L' : 'M') + X(i).toFixed(1) + ',' + Y(F[i]).toFixed(1);
+  $('.ridge-line', svg).setAttribute('d', d);
+  $('.ridge-fill', svg).setAttribute('d', d + `L${W},${H}L0,${H}Z`);
+  for (const c of $$('circle', svg)) { c.setAttribute('cx', X(LAND.top)); c.setAttribute('cy', Y(F[LAND.top])); }
+})();
+
+// slide 5: a fixed hill-climbing run that ends on a local peak
+(() => {
+  const cv = $('canvas.land-static'), { ctx, w, h } = setup(cv), { F } = LAND;
+  const { X, Y } = drawLand(ctx, w, h, false);
+  const rnd = mulberry32(5);
+  let x = 190;
+  const trail = [x];
+  while (LAND.canImprove(x)) {
+    const y = LAND.neighbor(x, rnd);
+    if (F[y] > F[x]) { x = y; trail.push(x); }
+  }
+  ctx.strokeStyle = C.s1; ctx.lineWidth = 1.5; ctx.setLineDash([4, 4]);
+  ctx.beginPath();
+  trail.forEach((p, i) => i ? ctx.lineTo(X(p), Y(F[p])) : ctx.moveTo(X(p), Y(F[p])));
+  ctx.stroke(); ctx.setLineDash([]);
+  trail.slice(1, -1).forEach(p => dot(ctx, X(p), Y(F[p]), 4, C.s1));
+  ctx.beginPath(); ctx.arc(X(trail[0]), Y(F[trail[0]]), 7, 0, 2 * Math.PI);
+  ctx.fillStyle = '#fff'; ctx.fill(); ctx.strokeStyle = C.s1; ctx.lineWidth = 2.5; ctx.stroke();
+  dot(ctx, X(x), Y(F[x]), 8, C.s1);
+  ctx.font = `600 14px ${FONT}`; ctx.textBaseline = 'bottom'; ctx.textAlign = 'center';
+  ctx.fillStyle = C.ink; ctx.fillText('stops here', X(x), Y(F[x]) - 14);
+  ctx.fillStyle = C.ink2; ctx.fillText('never visited', X(LAND.top), Y(F[LAND.top]) - 10);
+  ctx.textBaseline = 'top'; ctx.fillText('start', X(trail[0]) - 4, Y(F[trail[0]]) + 12);
+})();
+
+// interactive landscape demos (slides 19, 20, 24)
+function makeLand(sl, mode) {
+  const cv = $('canvas.land', sl), { ctx, w, h } = setup(cv), { F } = LAND;
+  const status = $('.status', sl);
+  const SA_N = 3000, T0 = 0.5, T1 = 0.01, ALPHA = Math.pow(T1 / T0, 1 / (SA_N - 1));
+  let walkers = [], start = null, raf = 0, geo = null;
+  const make = (kind, x) => ({ kind, x, best: x, it: 0, trail: [x], probe: null, done: false, T: T0, worse: 0 });
+  function stepW(wk) {
+    const y = LAND.neighbor(wk.x, Math.random), d = F[y] - F[wk.x];
+    wk.probe = y;
+    if (wk.kind === 'hc') {
+      if (d > 0) { wk.x = y; wk.trail.push(y); }
+      wk.it++;
+      if (!LAND.canImprove(wk.x) || wk.it >= 4000) { wk.done = true; wk.probe = null; }
+    } else {
+      if (d >= 0 || Math.random() < Math.exp(d / wk.T)) { if (d < 0) wk.worse++; wk.x = y; }
+      wk.trail.push(wk.x); if (wk.trail.length > 60) wk.trail.shift();
+      wk.T *= ALPHA; wk.it++;
+      if (wk.it >= SA_N) { wk.done = true; wk.probe = null; }
+    }
+    if (F[wk.x] > F[wk.best]) wk.best = wk.x;
+  }
+  function draw() {
+    geo = drawLand(ctx, w, h, true);
+    const { X, Y } = geo;
+    if (mode === 'sa' && start !== null) {
+      ctx.strokeStyle = C.ink3; ctx.lineWidth = 1.5; ctx.setLineDash([3, 4]);
+      ctx.beginPath(); ctx.moveTo(X(start), Y(F[start]) + 10); ctx.lineTo(X(start), h - 30); ctx.stroke(); ctx.setLineDash([]);
+    }
+    for (const wk of walkers) {
+      const col = wk.kind === 'hc' ? C.s1 : C.s2;
+      ctx.globalAlpha = 0.3; ctx.fillStyle = col;
+      for (const p of wk.trail) { ctx.beginPath(); ctx.arc(X(p), Y(F[p]), 3, 0, 2 * Math.PI); ctx.fill(); }
+      ctx.globalAlpha = 1;
+      if (wk.probe !== null) {
+        ctx.beginPath(); ctx.arc(X(wk.probe), Y(F[wk.probe]), 6, 0, 2 * Math.PI);
+        ctx.strokeStyle = C.ink3; ctx.lineWidth = 1.5; ctx.stroke();
+      }
+      if (wk.kind === 'sa') {
+        ctx.beginPath(); ctx.arc(X(wk.best), Y(F[wk.best]), 13, 0, 2 * Math.PI);
+        ctx.strokeStyle = C.s2; ctx.lineWidth = 2.5; ctx.stroke();
+      }
+    }
+    for (const wk of walkers) dot(ctx, X(wk.x), Y(F[wk.x]), 8, wk.kind === 'hc' ? C.s1 : C.s2);
+    if (mode === 'restarts' && walkers.length && walkers.every(wk => wk.done)) {
+      const b = walkers.reduce((a, c) => F[c.x] > F[a.x] ? c : a);
+      ctx.beginPath(); ctx.arc(X(b.x), Y(F[b.x]), 15, 0, 2 * Math.PI);
+      ctx.strokeStyle = C.ink; ctx.lineWidth = 2.5; ctx.stroke();
+    }
+  }
+  const describe = wk => {
+    const k = LAND.kind(wk.x), v = F[wk.x].toFixed(2), top = F[LAND.top].toFixed(2);
+    if (k === 'global') return `Reached the <b>global maximum</b> (f = ${v}) after ${fmt(wk.it)} tries.`;
+    if (k === 'plateau') return `Stuck on the <b>plateau</b> after ${fmt(wk.it)} tries: no neighbor within ±${LAND.STEP} is higher than f = ${v}.`;
+    return `Stuck on a <b>local maximum</b> after ${fmt(wk.it)} tries: f = ${v}, but the top is ${top}. Every neighbor is lower.`;
+  };
+  function report() {
+    if (!status) return;
+    if (mode === 'hc') {
+      const wk = walkers[0];
+      if (!wk) { status.innerHTML = ''; return; }
+      status.innerHTML = wk.done ? describe(wk) : `Climbing… try ${fmt(wk.it)}, f = ${F[wk.x].toFixed(2)}`;
+    } else if (mode === 'restarts') {
+      if (!walkers.length) { status.innerHTML = ''; return; }
+      if (!walkers.every(wk => wk.done)) { status.innerHTML = `Climbing… ${walkers.filter(wk => wk.done).length} of 20 stopped`; return; }
+      const n = { global: 0, plateau: 0, local: 0 };
+      walkers.forEach(wk => n[LAND.kind(wk.x)]++);
+      const best = Math.max(...walkers.map(wk => F[wk.x]));
+      status.innerHTML = `<b>${n.global} of 20</b> reached the global maximum · ${n.plateau} stuck on the plateau · `
+        + `${n.local} on a local maximum.<br>Best of the 20: f = ${best.toFixed(2)}.`;
+    } else {
+      const sa = walkers.find(wk => wk.kind === 'sa'), hc = walkers.find(wk => wk.kind === 'hc');
+      const ro = $('[data-k="sa"]', sl), th = $('.therm i', sl);
+      if (sa) {
+        ro.innerHTML = `Temperature <b>T = ${sa.T.toFixed(3)}</b> · iteration ${fmt(sa.it)} / ${fmt(SA_N)} · worse moves accepted: ${fmt(sa.worse)}`;
+        th.style.width = `${Math.max(0, Math.log(sa.T / T1) / Math.log(T0 / T1)) * 100}%`;
+      }
+      const lines = [];
+      if (sa) {
+        const bk = LAND.kind(sa.best);
+        lines.push(sa.done
+          ? `Annealing: best state f = ${F[sa.best].toFixed(2)} ${bk === 'global' ? '(the global maximum)' : `(not the top, which is ${F[LAND.top].toFixed(2)}: run it again)`}.`
+          : `Annealing: current f = ${F[sa.x].toFixed(2)}, best so far ${F[sa.best].toFixed(2)}`);
+      }
+      if (hc) lines.push(hc.done ? `Hill climbing: stopped at f = ${F[hc.x].toFixed(2)} (${LAND.kind(hc.x) === 'global' ? 'global maximum' : LAND.kind(hc.x)}).` : `Hill climbing: f = ${F[hc.x].toFixed(2)}`);
+      status.innerHTML = lines.join('<br>') || (start !== null ? `Start chosen. Press <b>Anneal</b>, <b>Hill climb</b> or <b>Both</b>.` : '');
+    }
+  }
+  function tick() {
+    let busy = false;
+    for (const wk of walkers) {
+      if (wk.done) continue;
+      busy = true;
+      for (let j = 0, k = wk.kind === 'sa' ? 10 : 2; j < k && !wk.done; j++) stepW(wk);
+    }
+    draw(); report();
+    raf = busy ? requestAnimationFrame(tick) : 0;
+  }
+  const kick = () => { if (!raf) raf = requestAnimationFrame(tick); };
+  const randomStart = () => Math.floor(Math.random() * LAND.G);
+  const launch = kinds => {
+    if (start === null) start = randomStart();
+    walkers = kinds.map(k => make(k, start));
+    kick();
+  };
+  cv.style.cursor = mode === 'restarts' ? 'default' : 'crosshair';
+  cv.addEventListener('click', e => {
+    if (mode === 'restarts' || !geo) return;
+    const p = pointer(cv, e, w, h);
+    const i = Math.round((p.x - geo.L) / (geo.R - geo.L) * (LAND.G - 1));
+    if (i < 0 || i >= LAND.G) return;
+    if (mode === 'hc') { walkers = [make('hc', i)]; kick(); }
+    else { start = i; walkers = []; draw(); report(); }
+  });
+  $$('[data-act]', sl).forEach(b => b.addEventListener('click', () => {
+    const a = b.dataset.act;
+    if (a === 'random' && mode === 'hc') { walkers = [make('hc', randomStart())]; kick(); }
+    else if (a === 'random') { start = randomStart(); walkers = []; draw(); report(); }
+    else if (a === 'restarts') { walkers = Array.from({ length: 20 }, () => make('hc', randomStart())); kick(); }
+    else if (a === 'sa') launch(['sa']);
+    else if (a === 'hc') launch(['hc']);
+    else if (a === 'both') launch(['hc', 'sa']);
+  }));
+  draw(); report();
+}
+makeLand($('#s-land-hc'), 'hc');
+makeLand($('#s-land-rr'), 'restarts');
+makeLand($('#s-land-sa'), 'sa');
+
+// ---------------------------------------------------------------- Example A: triangle
+const TRI = (() => {
+  const n = 500, rnd = mulberry32(13), X = new Float64Array(n), Y = new Float64Array(n);
+  for (let i = 0; i < n; i++) X[i] = gauss(rnd) * 2 - 1;
+  for (let i = 0; i < n; i++) Y[i] = gauss(rnd) * 2 - 1;
+  const area = s => 0.5 * Math.abs(X[s[0]] * Y[s[1]] + X[s[1]] * Y[s[2]] + X[s[2]] * Y[s[0]]
+                                 - Y[s[0]] * X[s[1]] - Y[s[1]] * X[s[2]] - Y[s[2]] * X[s[0]]);
+  const brute = () => {
+    let best = -1, bi = 0, bj = 1, bk = 2;
+    for (let i = 0; i < n - 2; i++) {
+      const xi = X[i], yi = Y[i];
+      for (let j = i + 1; j < n - 1; j++) {
+        const dx = X[j] - xi, dy = Y[j] - yi;
+        for (let k = j + 1; k < n; k++) {
+          const a = Math.abs(dx * (Y[k] - yi) - (X[k] - xi) * dy);
+          if (a > best) { best = a; bi = i; bj = j; bk = k; }
+        }
+      }
+    }
+    return { s: [bi, bj, bk], area: best / 2 };
+  };
+  let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+  for (let i = 0; i < n; i++) {
+    x0 = Math.min(x0, X[i]); x1 = Math.max(x1, X[i]);
+    y0 = Math.min(y0, Y[i]); y1 = Math.max(y1, Y[i]);
+  }
+  return { n, X, Y, area, brute, bounds: [x0, x1, y0, y1] };
+})();
+
+function drawTri(ctx, w, h, o = {}) {
+  const [x0, x1, y0, y1] = TRI.bounds, m = 20;
+  const s = Math.min((w - 2 * m) / (x1 - x0), (h - 2 * m) / (y1 - y0));
+  const ox = (w - s * (x1 - x0)) / 2, oy = (h - s * (y1 - y0)) / 2;
+  const px = v => ox + (v - x0) * s, py = v => h - oy - (v - y0) * s;
+  ctx.clearRect(0, 0, w, h);
+  ctx.lineWidth = 1;
+  for (let g = Math.ceil(x0 / 2) * 2; g <= x1; g += 2) {
+    ctx.strokeStyle = g === 0 ? C.axis : C.grid;
+    ctx.beginPath(); ctx.moveTo(px(g), 0); ctx.lineTo(px(g), h); ctx.stroke();
+  }
+  for (let g = Math.ceil(y0 / 2) * 2; g <= y1; g += 2) {
+    ctx.strokeStyle = g === 0 ? C.axis : C.grid;
+    ctx.beginPath(); ctx.moveTo(0, py(g)); ctx.lineTo(w, py(g)); ctx.stroke();
+  }
+  ctx.fillStyle = C.muted;
+  for (let i = 0; i < TRI.n; i++) { ctx.beginPath(); ctx.arc(px(TRI.X[i]), py(TRI.Y[i]), 2.3, 0, 2 * Math.PI); ctx.fill(); }
+  const path = t => {
+    ctx.beginPath();
+    t.forEach((i, k) => k ? ctx.lineTo(px(TRI.X[i]), py(TRI.Y[i])) : ctx.moveTo(px(TRI.X[i]), py(TRI.Y[i])));
+    ctx.closePath();
+  };
+  if (o.cand) { path(o.cand); ctx.setLineDash([5, 4]); ctx.strokeStyle = C.ink3; ctx.lineWidth = 1.5; ctx.stroke(); ctx.setLineDash([]); }
+  if (o.state) {
+    path(o.state); ctx.fillStyle = 'rgba(42,120,214,0.16)'; ctx.fill();
+    ctx.strokeStyle = C.s1; ctx.lineWidth = 2.5; ctx.stroke();
+  }
+  if (o.opt) { path(o.opt); ctx.strokeStyle = C.s2; ctx.lineWidth = 3; ctx.setLineDash([10, 6]); ctx.stroke(); ctx.setLineDash([]); }
+  if (o.state) o.state.forEach(i => dot(ctx, px(TRI.X[i]), py(TRI.Y[i]), 5, C.s1));
+}
+(() => { const { ctx, w, h } = setup($('canvas.tri-static')); drawTri(ctx, w, h); })();
+
+(() => {
+  const sl = $('#s-tri'), { ctx, w, h } = setup($('canvas.tri', sl));
+  const out = k => $(`[data-k="${k}"]`, sl), logEl = $('.log', sl);
+  const N = 100000, START = [3, 6, 5];
+  let st, sc, it, imp, cand, lines, running = false, opt = null;
+  const reset = () => { st = START.slice(); sc = TRI.area(st); it = 0; imp = 0; cand = null; lines = []; running = false; render(); };
+  const stepOnce = () => {
+    const t = st.slice();
+    t[Math.floor(Math.random() * 3)] = Math.floor(Math.random() * TRI.n);
+    const s = TRI.area(t);
+    cand = t;
+    if (s > sc) { st = t; sc = s; imp++; lines.push(`Iter ${it}: Found better score ${sc.toFixed(4)}`); }
+    it++;
+  };
+  function render() {
+    drawTri(ctx, w, h, { state: st, cand, opt: opt && opt.s });
+    out('it').textContent = `${fmt(it)} / ${fmt(N)}`;
+    out('state').textContent = `(${st.join(', ')})`;
+    out('area').textContent = sc.toFixed(4);
+    out('imp').textContent = imp;
+    if (opt) out('opt').textContent = `${opt.area.toFixed(4)}  (current = ${(sc / opt.area * 100).toFixed(1)}% of it)`;
+    logEl.textContent = lines.length ? lines.slice(-8).join('\n') : 'No improvements yet.';
+  }
+  function frame() {
+    if (!running) return;
+    for (let j = 0, k = Math.max(1, Math.floor(it / 25)); j < k && it < N; j++) stepOnce();
+    if (it >= N) { running = false; cand = null; }
+    render();
+    if (running) requestAnimationFrame(frame);
+  }
+  $$('[data-act]', sl).forEach(b => b.addEventListener('click', () => {
+    const a = b.dataset.act;
+    if (a === 'run') { if (it >= N) reset(); if (!running) { running = true; requestAnimationFrame(frame); } }
+    else if (a === 'step') { running = false; if (it < N) { stepOnce(); render(); } }
+    else if (a === 'reset') reset();
+    else if (a === 'brute') {
+      out('opt').textContent = 'checking 20,708,500 triangles…';
+      setTimeout(() => {
+        const t0 = performance.now(), r = TRI.brute(), ms = performance.now() - t0;
+        opt = r;
+        render();
+        lines.push(`Brute force: ${r.area.toFixed(4)} in ${(ms / 1000).toFixed(2)} s (JavaScript)`);
+        render();
+      }, 30);
+    }
+  }));
+  reset();
+})();
+
+// ---------------------------------------------------------------- Example B: scheduling
+const SCH = (() => {
+  const NC = 70, K = 15, rnd = mulberry32(222), M = new Int32Array(NC * NC);
+  for (let i = 0; i < NC; i++)
+    for (let j = i + 1; j < NC; j++) {
+      let v = Math.floor(rnd() * 100);
+      if (v > 70) v = 0;
+      M[i * NC + j] = v; M[j * NC + i] = v;
+    }
+  const cost = s => {
+    let c = 0;
+    for (let i = 0; i < NC; i++) for (let j = i + 1; j < NC; j++) if (s[i] === s[j]) c += M[i * NC + j];
+    return c;
+  };
+  // change in cost if class c moves to slot ns: O(n) instead of re-scoring O(n^2)
+  const delta = (s, c, ns) => {
+    const os = s[c];
+    if (os === ns) return 0;
+    let d = 0;
+    for (let j = 0; j < NC; j++) {
+      if (j === c) continue;
+      if (s[j] === ns) d += M[c * NC + j]; else if (s[j] === os) d -= M[c * NC + j];
+    }
+    return d;
+  };
+  const clash = (s, c) => {
+    let t = 0;
+    for (let j = 0; j < NC; j++) if (j !== c && s[j] === s[c]) t += M[c * NC + j];
+    return t;
+  };
+  return { NC, K, M, cost, delta, clash };
+})();
+
+// slide 11: an exam week, slot s holds classes s, s+15, s+30, ...
+$$('table.week').forEach(t => {
+  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], times = ['9:00', '13:00', '16:00'];
+  let h = '<tr><th></th>' + days.map(d => `<th>${d}</th>`).join('') + '</tr>';
+  times.forEach((tm, r) => {
+    h += `<tr><th class="row">${tm}</th>`;
+    days.forEach((d, c) => {
+      const s = c * 3 + r, ex = [];
+      for (let k = s; k < SCH.NC; k += 15) ex.push(`<span class="ex">${k}</span>`);
+      h += `<td${s === 0 ? ' class="hi"' : ''}><span class="sl">slot ${s}</span>${ex.join('')}</td>`;
+    });
+    h += '</tr>';
+  });
+  t.innerHTML = h;
+});
+
+// conflict-matrix heatmap with hover
+(() => {
+  const sl = $('#s-sched'), cv = $('canvas.heat', sl), { ctx, w, h } = setup(cv), tip = $('.tip', sl);
+  const n = SCH.NC, cs = w / n;
+  for (let i = 0; i < n; i++)
+    for (let j = 0; j < n; j++) {
+      ctx.fillStyle = i === j ? '#ffffff' : RAMP[rampIdx(SCH.M[i * n + j] / 70)];
+      ctx.fillRect(j * cs, i * cs, cs + 0.4, cs + 0.4);
+    }
+  $('.cbar', sl).style.background = `linear-gradient(90deg, ${RAMP.join(',')})`;
+  cv.addEventListener('mousemove', e => {
+    const p = pointer(cv, e, w, h), j = Math.floor(p.x / cs), i = Math.floor(p.y / cs);
+    if (i < 0 || j < 0 || i >= n || j >= n) { tip.style.display = 'none'; return; }
+    tip.innerHTML = i === j ? `class ${i} with itself: 0` : `<b>student[${i}][${j}] = ${SCH.M[i * n + j]}</b><br>students taking class ${i} and class ${j}`;
+    tip.style.display = 'block';
+    tip.style.left = Math.min(p.x + 14, w - 250) + 'px';
+    tip.style.top = (p.y + 14) + 'px';
+  });
+  cv.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
+})();
+
+// slide 16: score() one pair at a time, then one hill-climbing move
+(() => {
+  const sl = $('#s-score');
+  const M = [[0, 3, 4, 0, 2, 1], [3, 0, 0, 5, 6, 2], [4, 0, 0, 2, 0, 3],
+             [0, 5, 2, 0, 1, 4], [2, 6, 0, 1, 0, 0], [1, 2, 3, 4, 0, 0]];
+  const N = 6, K = 3, START = [0, 1, 0, 2, 1, 0];
+  const pairs = [];
+  for (let i = 0; i < N; i++) for (let j = i + 1; j < N; j++) pairs.push([i, j]);
+  const cost = s => pairs.reduce((t, [i, j]) => t + (s[i] === s[j] ? M[i][j] : 0), 0);
+  const lines = $$('pre .line', sl), out = $('.readout', sl), logEl = $('.sc-log', sl);
+  const val = k => $(`[data-v="${k}"]`, sl), playBtn = $('[data-act="play"]', sl);
+
+  const row = $('.sc-state', sl);
+  row.innerHTML = START.map((_, c) =>
+    `<div class="sc-col"><span class="sc-lab">class ${c}</span><div class="sc-cell"></div><span class="sc-ptr"></span></div>`).join('');
+  const cols = $$('.sc-col', row);
+  const mat = $('.sc-mat', sl);
+  let h = '<tr><th></th>' + START.map((_, c) => `<th>${c}</th>`).join('') + '</tr>';
+  for (let i = 0; i < N; i++)
+    h += `<tr><th>${i}</th>` + M[i].map((v, j) => `<td class="${j > i ? 'up' : 'lo'}">${v}</td>`).join('') + '</tr>';
+  mat.innerHTML = h;
+
+  // k: index of the pair being checked; -1 before the loop, pairs.length after it
+  let state, k, trial, timer = null, revert = null;
+
+  function render() {
+    const cur = pairs[k];
+    cols.forEach((col, c) => {
+      const cell = $('.sc-cell', col), ptr = $('.sc-ptr', col);
+      const isI = !!cur && cur[0] === c, isJ = !!cur && cur[1] === c;
+      cell.textContent = state[c];
+      cell.dataset.s = state[c];
+      cell.classList.toggle('pi', isI);
+      cell.classList.toggle('pj', isJ);
+      cell.classList.toggle('moved', !!trial && trial.idx === c);
+      ptr.textContent = isI ? 'i' : isJ ? 'j' : '';
+      ptr.className = 'sc-ptr' + (isI ? ' i' : isJ ? ' j' : '');
+    });
+    let total = 0;
+    const log = ['complaints = 0'];
+    pairs.forEach(([i, j], p) => {
+      const td = mat.rows[i + 1].cells[j + 1], seen = p <= k, hit = seen && state[i] === state[j];
+      if (hit) { total += M[i][j]; log.push(`(${i}, ${j}) same slot  +${M[i][j]}  → <b>${total}</b>`); }
+      td.classList.toggle('hit', hit);
+      td.classList.toggle('miss', seen && !hit);
+      td.classList.toggle('cur', p === k);
+    });
+    for (let c = 0; c < N; c++) {
+      mat.rows[0].cells[c + 1].classList.toggle('on', !!cur && cur[1] === c);
+      mat.rows[c + 1].cells[0].classList.toggle('on', !!cur && cur[0] === c);
+    }
+    if (k >= pairs.length) log.push(`return <b>${total}</b>`);
+    logEl.innerHTML = log.slice(-9).join('\n');
+    const [i, j] = cur || [];
+    val('i').textContent = cur ? i : '–';
+    val('j').textContent = cur ? j : '–';
+    val('si').textContent = cur ? state[i] : '–';
+    val('sj').textContent = cur ? state[j] : '–';
+    val('same').innerHTML = !cur ? '–' : state[i] === state[j]
+      ? `yes: add <code>student[${i}, ${j}]</code> = ${M[i][j]}` : 'no: skip';
+    val('sum').textContent = total;
+    lines.forEach(l => l.classList.remove('hl', 'ins'));
+    if (k < 0) lines[1].classList.add('hl');
+    else if (!cur) lines[6].classList.add('hl');
+    else {
+      lines[4].classList.add('hl');
+      if (state[i] === state[j]) lines[5].classList.add('ins');
+    }
+  }
+  function stop() { clearInterval(timer); timer = null; playBtn.textContent = 'Play'; }
+  function play(ms) { stop(); timer = setInterval(step, ms); playBtn.textContent = 'Pause'; }
+  function step() {
+    if (k >= pairs.length) return stop();
+    if (k < 0 && !trial) out.innerHTML = '';
+    k++;
+    render();
+    if (k >= pairs.length) finish();
+  }
+  function finish() {
+    stop();
+    const total = cost(state);
+    if (!trial) { out.innerHTML = `<b>score(state) = ${total}</b>`; return; }
+    const { old, oldCost } = trial;
+    if (total < oldCost) {
+      out.innerHTML = `New cost <b>${total}</b> &lt; ${oldCost}: hill climbing <b>keeps</b> the neighbor.`;
+      trial = null;
+      render();
+    } else {
+      out.innerHTML = `New cost <b>${total}</b> is not below ${oldCost}: hill climbing <b>rejects</b> it and keeps the old timetable.`;
+      revert = setTimeout(() => { state = old; trial = null; render(); }, 1400);
+    }
+  }
+  function restartLoop() {
+    clearTimeout(revert);
+    if (trial && k >= pairs.length) { state = trial.old; trial = null; }
+    k = -1;
+  }
+  function reset() {
+    stop(); clearTimeout(revert);
+    state = START.slice(); k = -1; trial = null;
+    render();
+    out.innerHTML = 'Press <b>Step</b> or <b>Play</b> to run <code>score(state)</code>.';
+  }
+  $('[data-act="step"]', sl).addEventListener('click', () => {
+    stop();
+    if (k >= pairs.length) { restartLoop(); render(); out.innerHTML = ''; }
+    else step();
+  });
+  playBtn.addEventListener('click', () => {
+    if (timer) return stop();
+    if (k >= pairs.length) { restartLoop(); render(); out.innerHTML = ''; }
+    play(650);
+  });
+  $('[data-act="try"]', sl).addEventListener('click', () => {
+    stop(); clearTimeout(revert);
+    if (trial) state = trial.old;               // abandon a neighbor still being scored
+    const old = state.slice(), idx = Math.floor(Math.random() * N), to = Math.floor(Math.random() * K);
+    trial = { old, oldCost: cost(old), idx };
+    state = old.slice();
+    state[idx] = to;
+    k = -1;
+    render();
+    out.innerHTML = `<code>perturb</code>: class ${idx} moves from slot ${old[idx]} to slot ${to}` +
+      `${to === old[idx] ? ' (the same slot)' : ''}. Current cost ${trial.oldCost}. Scoring the neighbor…`;
+    play(260);
+  });
+  $('[data-act="reset"]', sl).addEventListener('click', reset);
+  reset();
+})();
+
+function makeSched(sl) {
+  const cv = $('canvas.cost', sl), { ctx, w, h } = setup(cv), tip = $('.tip', sl), grid = $('.sgrid', sl);
+  const N = 50000, REC = 50, SPF = 250, T0 = 50, T1 = 0.01, ALPHA = Math.pow(T1 / T0, 1 / (N - 1));
+  const L = 84, R = w - 74, T = 12, B = h - 46;
+  const lx = i => L + i * REC / N * (R - L);
+  const ly = v => B - (Math.log10(Math.max(v, 100)) - 2) / 3 * (B - T);   // 100 … 100,000
+  let runs = {}, raf = 0, hover = null;
+  const cells = [];
+  if (grid) for (let c = 0; c < SCH.NC; c++) { const d = document.createElement('div'); grid.appendChild(d); cells.push(d); }
+  function newRun(kind) {
+    const s = new Int32Array(SCH.NC).fill(1), c = SCH.cost(s);
+    runs[kind] = { kind, s, c, best: c, it: 0, T: T0, cur: [c], bst: [c] };
+    if (!raf) raf = requestAnimationFrame(tick);
+  }
+  function stepRun(r) {
+    const cls = Math.floor(Math.random() * SCH.NC), ns = Math.floor(Math.random() * SCH.K);
+    const d = SCH.delta(r.s, cls, ns);
+    const accept = r.kind === 'hc' ? d < 0 : (d <= 0 || Math.random() < Math.exp(-d / r.T));
+    if (accept) { r.s[cls] = ns; r.c += d; }
+    if (r.c < r.best) r.best = r.c;
+    if (r.kind === 'sa') r.T *= ALPHA;
+    r.it++;
+    if (r.it % REC === 0) { r.cur.push(r.c); r.bst.push(r.best); }
+  }
+  function tick() {
+    let busy = false;
+    for (const r of Object.values(runs)) {
+      if (r.it >= N) continue;
+      busy = true;
+      for (let j = 0; j < SPF && r.it < N; j++) stepRun(r);
+    }
+    draw(); report();
+    raf = busy ? requestAnimationFrame(tick) : 0;
+  }
+  function draw() {
+    ctx.clearRect(0, 0, w, h);
+    ctx.font = `500 13px ${FONT}`; ctx.fillStyle = C.ink3; ctx.lineWidth = 1;
+    ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+    for (const v of [100, 1000, 10000, 100000]) {
+      ctx.strokeStyle = C.grid; ctx.beginPath(); ctx.moveTo(L, ly(v) + 0.5); ctx.lineTo(R, ly(v) + 0.5); ctx.stroke();
+      ctx.fillText(fmt(v), L - 8, ly(v));
+    }
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    for (let k = 0; k <= 5; k++) ctx.fillText(k ? `${k * 10}k` : '0', L + k / 5 * (R - L), B + 8);
+    ctx.strokeStyle = C.axis; ctx.beginPath(); ctx.moveTo(L, B + 0.5); ctx.lineTo(R, B + 0.5); ctx.stroke();
+    ctx.fillText('iteration', (L + R) / 2, B + 27);
+    ctx.save(); ctx.translate(14, (T + B) / 2); ctx.rotate(-Math.PI / 2); ctx.textBaseline = 'top';
+    ctx.fillText('complaints (log scale)', 0, 0); ctx.restore();
+    const line = (arr, col, lw, alpha) => {
+      if (!arr || arr.length < 2) return;
+      ctx.globalAlpha = alpha; ctx.strokeStyle = col; ctx.lineWidth = lw; ctx.lineJoin = 'round';
+      ctx.beginPath(); arr.forEach((v, i) => i ? ctx.lineTo(lx(i), ly(v)) : ctx.moveTo(lx(i), ly(v))); ctx.stroke();
+      ctx.globalAlpha = 1;
+    };
+    const endLabel = (arr, col) => {
+      if (!arr || arr.length < 2) return;
+      const i = arr.length - 1;
+      dot(ctx, lx(i), ly(arr[i]), 4, col);
+      ctx.font = `700 14px ${FONT}`; ctx.fillStyle = C.ink; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      ctx.fillText(fmt(arr[i]), lx(i) + 10, ly(arr[i]));
+    };
+    const { hc, sa } = runs;
+    if (sa) { line(sa.cur, C.s2, 1.5, 0.45); line(sa.bst, C.s2, 2.5, 1); }
+    if (hc) line(hc.cur, C.s1, 2.5, 1);
+    if (hc) endLabel(hc.cur, C.s1);
+    if (sa) endLabel(sa.bst, C.s2);
+    if (hover !== null) {
+      ctx.strokeStyle = C.ink3; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(lx(hover) + 0.5, T); ctx.lineTo(lx(hover) + 0.5, B); ctx.stroke();
+    }
+    if (!hc && !sa) {
+      ctx.font = `500 16px ${FONT}`; ctx.fillStyle = C.ink3; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('Press a button to start: every run begins with all 70 classes in slot 1', (L + R) / 2, (T + B) / 2);
+    }
+    if (grid) {
+      const s = hc ? hc.s : new Int32Array(SCH.NC).fill(1);
+      for (let c = 0; c < SCH.NC; c++) {
+        const cl = SCH.clash(s, c), k = rampIdx(Math.log1p(cl) / Math.log1p(1800));
+        cells[c].textContent = s[c];
+        cells[c].style.background = RAMP[k];
+        cells[c].style.color = k >= 8 ? '#fff' : C.ink;
+        cells[c].title = `class ${c}: slot ${s[c]}, ${cl} students clash with it`;
+      }
+    }
+  }
+  function report() {
+    const hcEl = $('[data-k="hc"]', sl), saEl = $('[data-k="sa"]', sl), { hc, sa } = runs;
+    if (hcEl) hcEl.innerHTML = hc
+      ? `Hill climbing: iteration ${fmt(hc.it)} · <b>${fmt(hc.c)}</b> complaints`
+      : 'Hill climbing: not started';
+    if (saEl) saEl.innerHTML = sa
+      ? `Annealing: iteration ${fmt(sa.it)} · T = ${sa.T.toFixed(2)} · current ${fmt(sa.c)} · best <b>${fmt(sa.best)}</b>`
+      : 'Annealing: not started';
+  }
+  cv.addEventListener('mousemove', e => {
+    const p = pointer(cv, e, w, h), len = Math.max(0, ...Object.values(runs).map(r => r.cur.length));
+    if (!len || p.x < L || p.x > R) { hover = null; tip.style.display = 'none'; draw(); return; }
+    hover = Math.max(0, Math.min(len - 1, Math.round((p.x - L) / (R - L) * N / REC)));
+    const { hc, sa } = runs, rows = [`<b>iteration ${fmt(hover * REC)}</b>`];
+    if (hc && hc.cur[hover] !== undefined) rows.push(`hill climbing: ${fmt(hc.cur[hover])}`);
+    if (sa && sa.cur[hover] !== undefined) rows.push(`annealing current: ${fmt(sa.cur[hover])}`, `annealing best: ${fmt(sa.bst[hover])}`);
+    tip.innerHTML = rows.join('<br>');
+    tip.style.display = 'block';
+    tip.style.left = (lx(hover) > (L + R) / 2 ? lx(hover) - 200 : lx(hover) + 14) + 'px';
+    tip.style.top = (T + 10) + 'px';
+    draw();
+  });
+  cv.addEventListener('mouseleave', () => { hover = null; tip.style.display = 'none'; draw(); });
+  $$('[data-act]', sl).forEach(b => b.addEventListener('click', () => {
+    const a = b.dataset.act;
+    if (a === 'reset') { runs = {}; hover = null; draw(); report(); }
+    else newRun(a);
+  }));
+  draw(); report();
+}
+makeSched($('#s-sched-hc'));
+makeSched($('#s-sched-sa'));
+
+// ---------------------------------------------------------------- math (KaTeX loads deferred)
+addEventListener('DOMContentLoaded', () => {
+  if (window.renderMathInElement) renderMathInElement($('#deck'), {
+    delimiters: [{ left: '$$', right: '$$', display: true }, { left: '$', right: '$', display: false }],
+    throwOnError: false,
+  });
+});
+})();
+</script>
+</body>
+</html>
